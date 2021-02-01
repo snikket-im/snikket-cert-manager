@@ -13,7 +13,10 @@ RUN apt-get update \
         certbot tini anacron \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get autoremove -y \
-    && rm -rf /var/cache/*
+    && rm -rf /var/cache/* \
+    && mv /etc/cron.daily/0anacron /tmp \
+    && rm /etc/cron.daily/* \
+    && mv /tmp/0anacron /etc/cron.daily
 
 ADD entrypoint.sh /entrypoint.sh
 ADD certbot.cron /etc/cron.daily/certbot
