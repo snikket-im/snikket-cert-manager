@@ -17,5 +17,6 @@ RUN apt-get update \
 
 ADD entrypoint.sh /entrypoint.sh
 ADD certbot.cron /etc/cron.daily/certbot
+ADD sendmail /usr/sbin/sendmail
 RUN chmod 555 /etc/cron.daily/certbot
 RUN useradd -md /snikket/letsencrypt letsencrypt
