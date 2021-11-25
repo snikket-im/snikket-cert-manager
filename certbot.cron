@@ -14,3 +14,7 @@ su letsencrypt -- -c "certbot certonly -n --webroot --webroot-path /var/www \
   --domain \"$SNIKKET_DOMAIN\" --domain \"share.$SNIKKET_DOMAIN\" \
   --domain \"groups.$SNIKKET_DOMAIN\"
   "
+
+sed -n '/^{/,/^}/p' /var/log/letsencrypt/letsencrypt.log \
+  | jq -r '(select(.status=="invalid").challenges | .[].error?.detail ), select(.detail).detail' \
+  > /var/log/letsencrypt/errors.log;
