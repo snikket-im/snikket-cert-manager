@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if test -f /var/log/letsencrypt/letsencrypt.log; then
+	# Preserve previous log until next run
+	mv /var/log/letsencrypt/letsencrypt.log /var/log/letsencrypt/letsencrypt.log.old;
+fi
+
 su letsencrypt -- -c "certbot certonly -n --webroot --webroot-path /var/www \
   --cert-path /etc/ssl/certbot \
   --keep $SNIKKET_CERTBOT_OPTIONS \
