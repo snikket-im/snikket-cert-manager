@@ -18,7 +18,7 @@ sed -n '/^{/,/^}/p' /var/log/letsencrypt/letsencrypt.log \
   | jq -r '(select(.status=="invalid").challenges | .[].error?.detail ), select(.detail).detail' \
   > /var/log/letsencrypt/errors.log;
 
-if ! test -s /var/log/letsencrypt/errors.log; then
+if test -s /var/log/letsencrypt/errors.log; then
 	touch /snikket/letsencrypt/has-errors;
 elif test -f /snikket/letsencrypt/has-errors; then
 	rm /snikket/letsencrypt/has-errors;
