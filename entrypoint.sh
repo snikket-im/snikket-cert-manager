@@ -18,4 +18,23 @@ install -o letsencrypt -g letsencrypt -m 755 -d /var/www/.well-known/acme-challe
 
 chown -R letsencrypt:letsencrypt /snikket/letsencrypt
 
+export SNIKKET_DNS_CHALLENGE=${SNIKKET_DNS_CHALLENGE:-0}
+if [ $SNIKKET_DNS_CHALLENGE = 0 ]; then
+        if [ -z $SNIKKET_TWEAK_XMPP_DOMAIN ]; then
+          :
+        else
+          export SNIKKET_DNS_CHALLENGE=1
+        fi
+else
+        if [ -z $SNIKKET_TWEAK_XMPP_DOMAIN ]; then
+          export SNIKKET_TWEAK_XMPP_DOMAIN=$SNIKKET_DOMAIN
+        fi
+fi
+if [ $SNIKKET_DNS_CHALLENGE = 1 ]; then
+        if ! test -d /snikket/coredns; then
+                install -o letsencrypt -g letsencrypt -m 750 -d /snikket/coredns;
+        fi
+        chown -R letsencrypt:letsencrypt /snikket/coredns
+fi
+
 exec /bin/sh -c "/usr/sbin/anacron -d -n && sleep 3600"

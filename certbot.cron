@@ -1,11 +1,27 @@
 #!/bin/sh
 
-su letsencrypt -- -c "certbot certonly -n --webroot --webroot-path /var/www \
-  --cert-path /etc/ssl/certbot \
-  --keep $SNIKKET_CERTBOT_OPTIONS \
-  --agree-tos --email \"$SNIKKET_ADMIN_EMAIL\" --expand \
-  --allow-subset-of-names \
-  --config-dir /snikket/letsencrypt \
-  --domain \"$SNIKKET_DOMAIN\" --domain \"share.$SNIKKET_DOMAIN\" \
-  --domain \"groups.$SNIKKET_DOMAIN\"
-  "
+if [ $SNIKKET_DNS_CHALLENGE = 0 ]; then
+        su letsencrypt -- -c "certbot certonly -n --webroot --webroot-path /var/www \
+          --cert-path /etc/ssl/certbot \
+          --keep $SNIKKET_CERTBOT_OPTIONS \
+          --agree-tos --email \"$SNIKKET_ADMIN_EMAIL\" --expand \
+          --allow-subset-of-names \
+          --config-dir /snikket/letsencrypt \
+          --domain \"$SNIKKET_DOMAIN\" --domain \"share.$SNIKKET_DOMAIN\" \
+          --domain \"groups.$SNIKKET_DOMAIN\"
+          "
+else
+        su letsencrypt -- -c "certbot certonly -n --manual \
+          --manual-public-ip-logging-ok \
+          --preferred-challenges dns \
+          --pre-hook /certbot-coredns/pre.py \
+          --manual-auth-hook /certbot-coredns/auth.py \
+          --post-hook /certbot-coredns/post.py \
+          --cert-path /etc/ssl/certbot \
+          --keep $SNIKKET_CERTBOT_OPTIONS \
+          --agree-tos --email \"$SNIKKET_ADMIN_EMAIL\" --expand \
+          --config-dir /snikket/letsencrypt \
+          --domain \"*.$SNIKKET_TWEAK_XMPP_DOMAIN\" \
+          --domain \"$SNIKKET_TWEAK_XMPP_DOMAIN\"
+          "
+fi
