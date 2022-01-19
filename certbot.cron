@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if test -f /var/log/letsencrypt/letsencrypt.log; then
+  # Preserve previous log until next run
+  mv /var/log/letsencrypt/letsencrypt.log /var/log/letsencrypt/letsencrypt.log.old;
+fi
+
 if [ $SNIKKET_DNS_CHALLENGE = 0 ]; then
         su letsencrypt -- -c "certbot certonly -n --webroot --webroot-path /var/www \
           --cert-path /etc/ssl/certbot \
@@ -24,4 +29,14 @@ else
           --domain \"*.$SNIKKET_TWEAK_XMPP_DOMAIN\" \
           --domain \"$SNIKKET_TWEAK_XMPP_DOMAIN\"
           "
+fi
+
+sed -n '/^{/,/^}/p' /var/log/letsencrypt/letsencrypt.log \
+  | jq -r '(select(.status=="invalid").challenges | .[].error?.detail ), select(.detail).detail' \
+  > /var/log/letsencrypt/errors.log;
+
+if test -s /var/log/letsencrypt/errors.log; then
+	touch /snikket/letsencrypt/has-errors;
+elif test -f /snikket/letsencrypt/has-errors; then
+	rm /snikket/letsencrypt/has-errors;
 fi

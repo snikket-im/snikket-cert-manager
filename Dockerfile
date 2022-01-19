@@ -2,7 +2,7 @@ FROM coredns/coredns:latest AS coredns
 # this image is only used for copying coredns binary
 # ca-certificates are added by apt below
 
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 COPY --from=coredns /coredns /usr/sbin/coredns
 
 ARG BUILD_SERIES=dev
@@ -17,8 +17,8 @@ CMD ["/bin/sh", "/entrypoint.sh"]
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        certbot tini anacron ca-certificates python3 dnsutils \
-    && update-ca-certificates \
+        certbot tini anacron jq ca-certificates python3 dnsutils \
+    && update-ca-certificates 
     && rm -rf /var/lib/apt/lists/* \
     && apt-get autoremove -y \
     && rm -rf /var/cache/* \
