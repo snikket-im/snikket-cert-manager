@@ -23,6 +23,7 @@ if [ $SNIKKET_DNS_CHALLENGE = 0 ]; then
         if [ -z $SNIKKET_TWEAK_XMPP_DOMAIN ]; then
           :
         else
+          echo "Using DNS challenge as SNIKKET_TWEAK_XMPP_DOMAIN is set"
           export SNIKKET_DNS_CHALLENGE=1
         fi
 else
@@ -31,6 +32,7 @@ else
         fi
 fi
 if [ $SNIKKET_DNS_CHALLENGE = 1 ]; then
+	echo "Using DNS challenge"
         if ! test -d /snikket/coredns; then
                 install -o letsencrypt -g letsencrypt -m 750 -d /snikket/coredns;
         fi

@@ -16,8 +16,8 @@ if [ $SNIKKET_DNS_CHALLENGE = 0 ]; then
           --domain \"groups.$SNIKKET_DOMAIN\"
           "
 else
+	echo "Using DNS challenge"
         su letsencrypt -- -c "certbot certonly -n --manual \
-          --manual-public-ip-logging-ok \
           --preferred-challenges dns \
           --pre-hook /certbot-coredns/pre.py \
           --manual-auth-hook /certbot-coredns/auth.py \
