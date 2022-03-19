@@ -1,18 +1,35 @@
 #!/bin/sh
 
 if test -f /var/log/letsencrypt/letsencrypt.log; then
-	# Preserve previous log until next run
-	mv /var/log/letsencrypt/letsencrypt.log /var/log/letsencrypt/letsencrypt.log.old;
+  # Preserve previous log until next run
+  mv /var/log/letsencrypt/letsencrypt.log /var/log/letsencrypt/letsencrypt.log.old;
 fi
 
-su letsencrypt -- -c "certbot certonly -n --webroot --webroot-path /var/www \
-  --cert-path /etc/ssl/certbot \
-  --keep $SNIKKET_CERTBOT_OPTIONS \
-  --agree-tos --email \"$SNIKKET_ADMIN_EMAIL\" --expand \
-  --config-dir /snikket/letsencrypt \
-  --domain \"$SNIKKET_DOMAIN\" --domain \"share.$SNIKKET_DOMAIN\" \
-  --domain \"groups.$SNIKKET_DOMAIN\"
-  "
+if [ $SNIKKET_DNS_CHALLENGE = 0 ]; then
+        su letsencrypt -- -c "certbot certonly -n --webroot --webroot-path /var/www \
+          --cert-path /etc/ssl/certbot \
+          --keep $SNIKKET_CERTBOT_OPTIONS \
+          --agree-tos --email \"$SNIKKET_ADMIN_EMAIL\" --expand \
+          --allow-subset-of-names \
+          --config-dir /snikket/letsencrypt \
+          --domain \"$SNIKKET_DOMAIN\" --domain \"share.$SNIKKET_DOMAIN\" \
+          --domain \"groups.$SNIKKET_DOMAIN\"
+          "
+else
+	echo "Using DNS challenge"
+        su letsencrypt -- -c "certbot certonly -n --manual \
+          --preferred-challenges dns \
+          --pre-hook /certbot-coredns/pre.py \
+          --manual-auth-hook /certbot-coredns/auth.py \
+          --post-hook /certbot-coredns/post.py \
+          --cert-path /etc/ssl/certbot \
+          --keep $SNIKKET_CERTBOT_OPTIONS \
+          --agree-tos --email \"$SNIKKET_ADMIN_EMAIL\" --expand \
+          --config-dir /snikket/letsencrypt \
+          --domain \"*.$SNIKKET_TWEAK_XMPP_DOMAIN\" \
+          --domain \"$SNIKKET_TWEAK_XMPP_DOMAIN\"
+          "
+fi
 
 sed -n '/^{/,/^}/p' /var/log/letsencrypt/letsencrypt.log \
   | jq -r '(select(.status=="invalid").challenges | .[].error?.detail ), select(.detail).detail' \
