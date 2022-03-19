@@ -21,7 +21,7 @@ def email_to_rname( email ):
 # note that CoreDNS only reloads the file if serial of SOA changes
 # this is why we rewrite the entire file with new timestamp
 # even when we are updating / adding just a single record
-def write_or_update_master_file( token = "" ):
+def write_or_update_master_file( token = "", delete = False ):
     master_file_content = """\
     ; Zone: SNIKKET.{domain}.
 
@@ -46,6 +46,8 @@ def write_or_update_master_file( token = "" ):
     domain = os.environ[ "SNIKKET_TWEAK_XMPP_DOMAIN" ]
     master_file_path = "/snikket/coredns/db.snikket.{}".format( domain )
     if os.path.exists( master_file_path ):
+        if delete:
+            os.remove( master_file_path )
         with open( master_file_path, "r" ) as f:
             existing_master_file_content = f.read()
         existing_last_line = existing_master_file_content.strip(). \

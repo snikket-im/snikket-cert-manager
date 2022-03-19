@@ -102,7 +102,7 @@ def main():
     print( "[PreHook] Running for domain {}".format( domain ) )
     validate_a_or_aaaa_record( domain )
     validate_cname_record( domain )
-    write_or_update_master_file()
+    write_or_update_master_file( delete = True )
     write_core_file( domain )
     print( "[PreHook] Starting DNS server" )
     with open( "/dev/null", "w" ) as devnull:
