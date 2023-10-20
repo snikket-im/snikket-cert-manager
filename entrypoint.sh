@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 PUID=${PUID:=$(stat -c %u /snikket)}
 PGID=${PGID:=$(stat -c %g /snikket)}
 
