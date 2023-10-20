@@ -6,7 +6,7 @@ ARG BUILD_ID=0
 VOLUME ["/snikket"]
 
 ENTRYPOINT ["/usr/bin/tini"]
-CMD ["/bin/sh", "/entrypoint.sh"]
+CMD ["/bin/bash", "/entrypoint.sh"]
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
