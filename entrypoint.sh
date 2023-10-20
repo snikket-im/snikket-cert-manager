@@ -18,6 +18,8 @@ install -o letsencrypt -g letsencrypt -m 750 -d /var/lib/letsencrypt;
 install -o letsencrypt -g letsencrypt -m 750 -d /var/log/letsencrypt;
 install -o letsencrypt -g letsencrypt -m 755 -d /var/www/.well-known/acme-challenge;
 
-chown -R letsencrypt:letsencrypt /snikket/letsencrypt
+if ! chown -R letsencrypt:letsencrypt /snikket/letsencrypt; then
+	echo "WW: Failed to adjust the permissions of some files/directories";
+fi
 
 exec /bin/sh -c "/usr/sbin/anacron -d -n && sleep 3600"
