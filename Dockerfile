@@ -15,7 +15,7 @@ RUN apt-get update \
     && apt-get autoremove -y \
     && rm -rf /var/cache/* \
     && mv /etc/cron.daily/0anacron /tmp \
-    && rm /etc/cron.daily/* \
+    && rm /etc/cron.daily/* /etc/cron.d/* \
     && mv /tmp/0anacron /etc/cron.daily
 
 ADD entrypoint.sh /entrypoint.sh
