@@ -22,4 +22,8 @@ if ! chown -R letsencrypt:letsencrypt /snikket/letsencrypt; then
 	echo "WW: Failed to adjust the permissions of some files/directories";
 fi
 
+if [ "$SNIKKET_CERTS_WAIT" = "1" ]; then
+	/usr/local/bin/wait_for_http.py "http://${SNIKKET_DOMAIN}";
+fi
+
 exec /bin/sh -c "/usr/sbin/anacron -d -n && sleep 3600"
