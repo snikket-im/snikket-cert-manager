@@ -43,6 +43,9 @@ should_retry () {
 	return;
 }
 
+# Initial attempt
+try_cert;
+
 attempts=0
 
 if should_retry; then
