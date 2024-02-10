@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+
+set -ueo pipefail
 
 if test -f /var/log/letsencrypt/letsencrypt.log; then
 	# Preserve previous log until next run
@@ -7,21 +9,56 @@ fi
 
 SNIKKET_CERTBOT_KEY_OPTIONS=${SNIKKET_CERTBOT_KEY_OPTIONS:---reuse-key}
 
-su letsencrypt -- -c "certbot certonly -n --webroot --webroot-path /var/www \
-  --cert-path /etc/ssl/certbot \
-  --keep $SNIKKET_CERTBOT_OPTIONS $SNIKKET_CERTBOT_KEY_OPTIONS \
-  --agree-tos --email \"$SNIKKET_ADMIN_EMAIL\" --expand \
-  --config-dir /snikket/letsencrypt \
-  --domain \"$SNIKKET_DOMAIN\" --domain \"share.$SNIKKET_DOMAIN\" \
-  --domain \"groups.$SNIKKET_DOMAIN\"
-  "
+has_errors () {
+	test -s /var/log/letsencrypt/errors.log;
+	return;
+}
 
-sed -n '/^{/,/^}/p' /var/log/letsencrypt/letsencrypt.log \
-  | jq -r '(select(.status=="invalid").challenges | .[].error?.detail ), select(.detail).detail' \
-  > /var/log/letsencrypt/errors.log;
+try_cert () {
+	su letsencrypt -- -c "certbot certonly -n --webroot --webroot-path /var/www \
+	  --cert-path /etc/ssl/certbot \
+	  --keep $SNIKKET_CERTBOT_OPTIONS $SNIKKET_CERTBOT_KEY_OPTIONS \
+	  --agree-tos --email \"$SNIKKET_ADMIN_EMAIL\" --expand \
+	  --config-dir /snikket/letsencrypt \
+	  --domain \"$SNIKKET_DOMAIN\" --domain \"share.$SNIKKET_DOMAIN\" \
+	  --domain \"groups.$SNIKKET_DOMAIN\"
+	  "
+	sed -n '/^{/,/^}/p' /var/log/letsencrypt/letsencrypt.log \
+	  | jq -r '(select(.status=="invalid").challenges | .[].error?.detail ), select(.detail).detail' \
+	  > /var/log/letsencrypt/errors.log;
 
-if test -s /var/log/letsencrypt/errors.log; then
-	touch /snikket/letsencrypt/has-errors;
-elif test -f /snikket/letsencrypt/has-errors; then
-	rm /snikket/letsencrypt/has-errors;
+	if has_errors; then
+		touch /snikket/letsencrypt/has-errors;
+	elif test -f /snikket/letsencrypt/has-errors; then
+		rm /snikket/letsencrypt/has-errors;
+	fi
+}
+
+
+should_retry () {
+	# This matches certain "soft" errors that we consider safe to retry
+	# "networking error" seems to be an intermittent timeout on the Let's Encrypt side
+	# "Service busy" is returned when their service is overloaded
+	grep -qE "^(DNS problem: networking error|Service busy;)" /var/log/letsencrypt/errors.log;
+	return;
+}
+
+attempts=0
+
+if should_retry; then
+	while test -s /var/log/letsencrypt/errors.log; do
+		attempts=$((attempts+1))
+		if [[ "$attempts" -gt "3" ]]; then
+			echo "Too many failures, will not retry for now"
+			break;
+		fi
+		echo "Pausing before retry..."
+		sleep $(( 15 + RANDOM % 30 ));
+		echo "Retrying certificate fetch...";
+		try_cert;
+		if ! should_retry; then
+			echo "Unexpected error, will not retry for now"
+			break;
+		fi
+	done
 fi
