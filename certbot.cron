@@ -17,7 +17,7 @@ has_errors () {
 try_cert () {
 	su letsencrypt -- -c "certbot certonly -n --webroot --webroot-path /var/www \
 	  --cert-path /etc/ssl/certbot \
-	  --keep $SNIKKET_CERTBOT_OPTIONS $SNIKKET_CERTBOT_KEY_OPTIONS \
+	  --keep ${SNIKKET_CERTBOT_OPTIONS-} $SNIKKET_CERTBOT_KEY_OPTIONS \
 	  --agree-tos --email \"$SNIKKET_ADMIN_EMAIL\" --expand \
 	  --config-dir /snikket/letsencrypt \
 	  --domain \"$SNIKKET_DOMAIN\" --domain \"share.$SNIKKET_DOMAIN\" \
