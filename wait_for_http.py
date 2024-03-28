@@ -5,7 +5,7 @@ import sys
 import time
 from datetime import datetime
 
-url = sys.argv[1]
+url = sys.argv[1].encode("idna").decode("ascii")
 
 sys.stdout.write("Waiting for HTTP to be available")
 
