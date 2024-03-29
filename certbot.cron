@@ -20,8 +20,8 @@ try_cert () {
 	  --keep ${SNIKKET_CERTBOT_OPTIONS-} $SNIKKET_CERTBOT_KEY_OPTIONS \
 	  --agree-tos --email \"$SNIKKET_ADMIN_EMAIL\" --expand \
 	  --config-dir /snikket/letsencrypt \
-	  --domain \"$SNIKKET_DOMAIN\" --domain \"share.$SNIKKET_DOMAIN\" \
-	  --domain \"groups.$SNIKKET_DOMAIN\"
+	  --domain \"$SNIKKET_DOMAIN_ASCII\" --domain \"share.$SNIKKET_DOMAIN_ASCII\" \
+	  --domain \"groups.$SNIKKET_DOMAIN_ASCII\"
 	  "
 	sed -n '/^{/,/^}/p' /var/log/letsencrypt/letsencrypt.log \
 	  | jq -r '(select(.status=="invalid").challenges | .[].error?.detail ), select(.detail).detail' \

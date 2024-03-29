@@ -10,7 +10,7 @@ CMD ["/bin/bash", "/entrypoint.sh"]
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        certbot tini anacron jq \
+        certbot tini anacron idn2 jq \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get autoremove -y \
     && rm -rf /var/cache/* \
