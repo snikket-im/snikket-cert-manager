@@ -18,6 +18,9 @@ RUN apt-get update \
     && rm /etc/cron.daily/* /etc/cron.d/* \
     && mv /tmp/0anacron /etc/cron.daily
 
+# Required for idn2 to work, and probably generally good
+ENV LANG=C.UTF-8
+
 ADD entrypoint.sh /entrypoint.sh
 ADD certbot.cron /etc/cron.daily/certbot
 ADD sendmail /usr/sbin/sendmail
