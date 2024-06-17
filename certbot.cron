@@ -18,19 +18,24 @@ has_errors () {
 }
 
 try_cert () {
-	su letsencrypt -- -c "certbot certonly -n --webroot --webroot-path /var/www \
+	if su letsencrypt -- -c "certbot certonly -n --webroot --webroot-path /var/www \
 	  --cert-path /etc/ssl/certbot \
 	  --keep ${SNIKKET_CERTBOT_OPTIONS-} $SNIKKET_CERTBOT_KEY_OPTIONS \
 	  --agree-tos --email \"$SNIKKET_ADMIN_EMAIL\" --expand \
 	  --config-dir /snikket/letsencrypt \
 	  --domain \"$SNIKKET_DOMAIN_ASCII\" --domain \"share.$SNIKKET_DOMAIN_ASCII\" \
 	  --domain \"groups.$SNIKKET_DOMAIN_ASCII\"
-	  "
+	  "; then
+		certbot_failed=0;
+	else
+		certbot_failed=1;
+	fi
+
 	sed -n '/^{/,/^}/p' /var/log/letsencrypt/letsencrypt.log \
 	  | jq -r '(select(.status=="invalid").challenges | .[].error?.detail ), select(.detail).detail' \
 	  > /var/log/letsencrypt/errors.log;
 
-	if has_errors; then
+	if [[ "$certbot_failed" == "1" ]] || has_errors; then
 		touch /snikket/letsencrypt/has-errors;
 	elif test -f /snikket/letsencrypt/has-errors; then
 		rm /snikket/letsencrypt/has-errors;
