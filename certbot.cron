@@ -7,7 +7,8 @@ if test -f /var/log/letsencrypt/letsencrypt.log; then
 	mv /var/log/letsencrypt/letsencrypt.log /var/log/letsencrypt/letsencrypt.log.old;
 fi
 
-export SNIKKET_DOMAIN_ASCII=$(idn2 "$SNIKKET_DOMAIN")
+SNIKKET_DOMAIN_ASCII=$(idn2 "$SNIKKET_DOMAIN")
+export SNIKKET_DOMAIN_ASCII
 
 SNIKKET_CERTBOT_KEY_OPTIONS=${SNIKKET_CERTBOT_KEY_OPTIONS:---reuse-key}
 
