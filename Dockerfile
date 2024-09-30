@@ -25,5 +25,6 @@ ADD entrypoint.sh /entrypoint.sh
 ADD certbot.cron /etc/cron.daily/certbot
 ADD sendmail /usr/sbin/sendmail
 ADD wait_for_http.py /usr/local/bin/wait_for_http.py
+ADD tools/report-error.sh /usr/local/bin/report-error.sh
 RUN chmod 555 /etc/cron.daily/certbot
 RUN useradd -md /snikket/letsencrypt letsencrypt

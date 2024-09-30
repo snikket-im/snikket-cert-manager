@@ -37,6 +37,7 @@ try_cert () {
 
 	if [[ "$certbot_failed" == "1" ]] || has_errors; then
 		touch /snikket/letsencrypt/has-errors;
+		report-error.sh "Certificate issuance failure" "/var/log/letsencrypt/errors.log";
 	elif test -f /snikket/letsencrypt/has-errors; then
 		rm /snikket/letsencrypt/has-errors;
 	fi
