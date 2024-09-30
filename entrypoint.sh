@@ -28,4 +28,10 @@ if [ "${SNIKKET_CERTS_WAIT-0}" = "1" ]; then
 	/usr/local/bin/wait_for_http.py "http://${SNIKKET_DOMAIN_ASCII}";
 fi
 
-exec /bin/sh -c "/usr/sbin/anacron -d -n && sleep 3600"
+# Run once, now
+/usr/sbin/anacron -d -n;
+
+# Run every hour
+while sleep 3600; do
+	/usr/sbin/anacron -d -n;
+done
