@@ -2,7 +2,7 @@
 
 set -ueo pipefail
 
-if test -f /var/log/letsencrypt/letsencrypt.log; then
+if test -s /var/log/letsencrypt/letsencrypt.log; then
 	# Preserve previous log until next run
 	mv /var/log/letsencrypt/letsencrypt.log /var/log/letsencrypt/letsencrypt.log.old;
 fi
