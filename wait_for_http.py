@@ -13,7 +13,7 @@ time_start = datetime.now()
 
 for i in range(1, 100):
     try:
-        r = requests.head(url)
+        r = requests.head(url, timeout=30)
         r.raise_for_status()
     except requests.exceptions.HTTPError:
         sys.stdout.write(".")
