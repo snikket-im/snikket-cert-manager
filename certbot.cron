@@ -17,7 +17,7 @@ has_errors () {
 	return;
 }
 
-try_cert () {
+try_http01 () {
 	if su letsencrypt -- -c "certbot certonly -n --webroot --webroot-path /var/www \
 	  --cert-path /etc/ssl/certbot \
 	  --keep ${SNIKKET_CERTBOT_OPTIONS-} $SNIKKET_CERTBOT_KEY_OPTIONS \
@@ -43,6 +43,41 @@ try_cert () {
 	fi
 }
 
+
+try_dns01() {
+	cd /tmp
+	echo "dns_listen_addr = \"0.0.0.0:53\"" > agnos.toml
+	echo "[[accounts]]" >> agnos.toml
+	echo "email = \"$SNIKKET_ADMIN_EMAIL\"" >> agnos.toml
+	echo "private_key_path = \"/snikket/letsencrypt/account.pem\"" >> agnos.toml
+	echo "[[accounts.certificates]]" >> agnos.toml
+	echo "domains = [\"$SNIKKET_DOMAIN_ASCII\", \"*.$SNIKKET_DOMAIN_ASCII\"]" >> agnos.toml
+	echo "fullchain_output_file = \"/snikket/letsencrypt/live/$SNIKKET_DOMAIN_ASCII/fullchain.pem\"" >> agnos.toml
+	echo "key_output_file = \"/snikket/letsencrypt/live/$SNIKKET_DOMAIN_ASCII/privkey.pem\"" >> agnos.toml
+	if echo "$SNIKKET_CERTBOT_KEY_OPTIONS" | grep no-reuse-key; then
+	  echo "reuse_private_key = false" >> agnos.toml
+	else
+	  echo "reuse_private_key = true" >> agnos.toml
+	fi
+	install -o letsencrypt -g letsencrypt -m 750 -d "/snikket/letsencrypt/live/$SNIKKET_DOMAIN_ASCII"
+	su letsencrypt -- -c "agnos-generate-accounts-keys --no-confirm agnos.toml"
+	if su letsencrypt -- -c "agnos --no-staging agnos.toml 2>&1 > /var/log/letsencrypt/agnos.log"; then
+		grep -i error /var/log/letsencrypt/agnos.log > /var/log/letsencrypt/errors.log || true
+		rm -f /snikket/letsencrypt/has-errors
+	else
+		grep -i error /var/log/letsencrypt/agnos.log > /var/log/letsencrypt/errors.log || true
+		touch /snikket/letsencrypt/has-errors
+		report-error.sh "Certificate issuance failure" "/var/log/letsencrypt/errors.log";
+	fi
+}
+
+try_cert() {
+	if [ -z "${SNIKKET_USE_DNS01-}" ]; then
+		try_http01
+	else
+		try_dns01
+	fi
+}
 
 should_retry () {
 	# This matches certain "soft" errors that we consider safe to retry
